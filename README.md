@@ -3,6 +3,8 @@ Tautulli Plex Scripts
 
 Upgrade of the original script from https://github.com/blacktwin/JBOPS
 
+***
+
 Added functions: streamAllowed and configUser
 
 Usage:
