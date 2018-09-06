@@ -4,7 +4,7 @@ Tautulli Plex Scripts
 Upgrade of the original script from https://github.com/blacktwin/JBOPS
 
 ***
-06/o9/2018 - streamSubscription
+06/09/2018 - streamSubscription
 
 Added function streamSubscription
 
