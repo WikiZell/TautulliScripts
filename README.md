@@ -16,6 +16,7 @@ user_id = 18422708
 subscription_end = 06/09/2018
 ```
 never as value = account unlimited.
+
 date in the following format 06/09/2018 (DAY/MONTH/YEAR) will kill the stream if date is greater than current day.
 
 ```
