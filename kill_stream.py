@@ -75,7 +75,7 @@ if sess.verify is False:
     import urllib3
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-SELECTOR = ['stream', 'allStreams', 'paused', 'streamAllowed','configUser']
+SELECTOR = ['stream', 'allStreams', 'paused', 'streamAllowed','configUser','streamSubscription']
 
 config = SafeConfigParser(allow_no_value=True)
 configPath = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'userConfig.ini'
@@ -174,6 +174,7 @@ def get_user_names():
         res_data = response['response']['data']
         #extra var
         for u in res_data:u['user_slot'] = '1'
+        for u in res_data:u['subscription_end'] = 'never'
 
         return res_data
 
@@ -214,24 +215,38 @@ def configUser():
     for sectionToRemove in sections:
         if not str(sectionToRemove) in s:
            #section to remove
-            removeSection(sectionToRemove)
+            config_removeSection(sectionToRemove)
 
-def removeSection(sectionToRemove):
+def config_removeSection(sectionToRemove):
     config.read(configPath)
     config.remove_section(sectionToRemove)
     with open(configPath, 'w') as fp:
          config.write(fp)
 
+def config_addValue(section,key,value=None):
+    config.read(configPath)
+    config[section][key] = value
+    with open(configPath, 'w') as fp:
+         config.write(fp)
+         return value
+    pass
+
+def config_getValue(section,key):
+    config.read(configPath)
+    try:
+        return config.get(section,key)
+    except:
+        return False
+    pass
+
+    pass
+
 def check_session(streamCount, userId, session_id, notifier=None, username=None):
 
     configUser()
 
-    config.read(configPath)
-    try:
-        slotsAllowed = config.get(userId,'user_slot')
-    except:
-        slotsAllowed = "1"
-    pass
+    val = config_getValue(userId, 'user_slot')
+    slotsAllowed = val if val else config_addValue(userId, 'user_slot', '1')
 
     if int(streamCount) > int(slotsAllowed):
         #kill stream: too many concurrent streams
@@ -243,6 +258,29 @@ def check_session(streamCount, userId, session_id, notifier=None, username=None)
     else:
         sys.stdout.write('Concurrent stream status: '+streamCount+' of '+slotsAllowed+'\n')
     return None
+
+def check_subscription(userId, session_id, notifier=None, username=None):
+    configUser()
+    today = datetime.strptime(datetime.today().strftime('%d/%m/%Y'), '%d/%m/%Y')
+
+    val = config_getValue(userId, 'subscription_end')
+    subscription_end = val if val else config_addValue(userId, 'subscription_end', 'never')
+
+    if val != 'never':
+        subscription_end = datetime.strptime(val, '%d/%m/%Y')
+        if today > subscription_end:
+            #kill stream: Account expired
+            message = 'Your account is expired'
+            sys.stdout.write('Account expired\n')
+            sys.stdout.write('Executing terminate_session..\n')
+            terminate_session(session_id, message, notifier=None, username=None)
+        else:
+            sys.stdout.write('Account valid until: '+str(subscription_end)+'\n')
+            return True
+    else:
+        sys.stdout.write('Unlimited account\n')
+        return True
+pass
 
 def terminate_session(session_id, message, notifier=None, username=None):
     """Stop a streaming session.
@@ -371,7 +409,11 @@ if __name__ == "__main__":
         configUser()
         sys.stderr.write("User config done....ok\n")
         sys.stderr.write("Config path: "+configPath+"\n")
-        sys.exit(0)
+        sys.exit()
+
+    if not opts.sessionId and opts.jbop != 'allStreams':
+        sys.stderr.write("No sessionId provided! Is this synced content?\n")
+        sys.exit(1)
 
     if not opts.sessionId and opts.jbop != 'allStreams':
         sys.stderr.write("No sessionId provided! Is this synced content?\n")
@@ -392,4 +434,7 @@ if __name__ == "__main__":
         terminate_long_pause(opts.sessionId, message, opts.limit,
                              opts.interval, opts.notify, opts.username)
     elif opts.jbop == 'streamAllowed':
-        check_session(opts.streamCount, opts.userId, opts.sessionId, opts.notify, opts.username)
+        if check_subscription(opts.userId, opts.sessionId, opts.notify, opts.username):
+            check_session(opts.streamCount, opts.userId, opts.sessionId, opts.notify, opts.username)
+    elif opts.jbop == 'streamSubscription':
+        check_subscription(opts.userId, opts.sessionId, opts.notify, opts.username)

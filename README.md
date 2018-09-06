@@ -4,7 +4,26 @@ Tautulli Plex Scripts
 Upgrade of the original script from https://github.com/blacktwin/JBOPS
 
 ***
+06/o9/2018 - streamSubscription
 
+Added function streamSubscription
+
+Exemple of userConfig.ini :
+```
+[18422708]
+friendly_name = John Doe
+user_id = 18422708
+subscription_end = 06/09/2018
+```
+never as value = account unlimited.
+date in the following format 06/09/2018 (DAY/MONTH/YEAR) will kill the stream if date is greater than current day.
+
+```
+--jbop streamSubscription --sessionId {session_id} --userId {user_id}
+```
+
+
+***
 Added functions: streamAllowed and configUser
 
 Usage:
