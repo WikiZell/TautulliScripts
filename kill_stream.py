@@ -54,8 +54,8 @@ try:
 except ImportError:
     from ConfigParser import SafeConfigParser
 
-TAUTULLI_URL = 'http://localhost:8282'
-TAUTULLI_APIKEY = 'b0fb8e169bbc4dc1a89703d877f3dbd7'
+TAUTULLI_URL = ''
+TAUTULLI_APIKEY = ''
 TAUTULLI_URL = os.getenv('TAUTULLI_URL', TAUTULLI_URL)
 TAUTULLI_APIKEY = os.getenv('TAUTULLI_APIKEY', TAUTULLI_APIKEY)
 TAUTULLI_ENCODING = os.getenv('TAUTULLI_ENCODING', 'UTF-8')
